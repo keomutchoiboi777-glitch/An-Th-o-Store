@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AN THẢO STORE | Thời Trang Nữ Thiết Kế</title>
+    <style>
+        /* --- A. TỔNG QUAN / RESET --- */
+        :root {
+            --primary-bg: #ffffff;
+            --text-dark: #111111;
+            --text-gray: #555555;
+            --divider: #e5e5e5;
+            --sale-red: #e60000;
+            --accent-wine: #8a3b3b;
+            --max-width: 1200px;
+            --jm-gray: #999999;
+            --jm-border: #d1d1d1;
+            --footer-bg: #1f1f1f;
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-dark);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        body.is-dragging {
+            user-select: none;
+            cursor: grabbing !important;
+        }
+
+        a { text-decoration: none; color: inherit; transition: all 0.2s ease; }
+        ul { list-style: none; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; }
+        img { max-width: 100%; display: block; object-fit: cover; }
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        /* --- B. HEADER --- */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .top-header {
+            height: 90px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .logo-area { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center;
+        }
+        .logo-text { 
+            font-size: 28px; 
+            font-weight: 900; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            line-height: 1;
+            color: var(--text-dark);
+        }
+        .logo-tagline { 
+            font-size: 9px; 
+            letter-spacing: 2px; 
+            color: #777; 
+            margin-top: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .main-nav { display: flex; gap: 20px; }
+        .nav-item {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            position: relative;
+            padding: 10px 0;
+            color: #222;
+        }
+        .nav-item:hover { color: var(--text-dark); }
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            width: 0;
+            height: 1.5px;
+            background: var(--text-dark);
+            transition: 0.2s ease;
+        }
+        .nav-item:hover::after { width: 100%; }
+
+        .nav-item.sale { color: var(--sale-red); }
+        .badge-sale {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            font-size: 8px;
+            background: var(--sale-red);
+            color: #fff;
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-weight: 700;
+        }
+
+        .header-icons { display: flex; gap: 24px; align-items: center; justify-content: flex-end; }
+        .icon-btn { position: relative; display: flex; align-items: center; color: #111; }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--text-dark);
+            color: #fff;
+            font-size: 10px;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        /* --- C. HERO SLIDER --- */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 560px;
+            background: #f7f7f7;
+            overflow: hidden;
+            z-index: 10;
+            touch-action: pan-y;
+            cursor: grab;
+        }
+        
+        .slider-viewport { 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            pointer-events: none;
+        }
+        
+        .track { 
+            height: 100%; 
+            display: flex; 
+            will-change: transform; 
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
+            pointer-events: auto;
+        }
+        
+        .slide { 
+            position: relative; 
+            min-width: 100%; 
+            height: 100%; 
+            background-size: cover; 
+            background-position: center 10%; 
+            background-repeat: no-repeat; 
+        }
+        
+        @media (max-width: 768px) {
+            .hero { height: 480px; }
+            .slide { background-position: center 0%; }
+        }
+
+        .hero-search-bar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(920px, 92%);
+            background: #fff;
+            display: flex;
+            height: 50px;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            z-index: 50;
+            pointer-events: auto;
+        }
+        .hero-search-bar input { flex: 1; padding: 0 20px; border: none; outline: none; font-size: 14px; background: transparent; }
+        .btn-search { background: var(--text-dark); color: #fff; width: 160px; text-transform: uppercase; font-size: 13px; font-weight: 600; transition: background 0.2s; }
+        .btn-search:hover { background: #333; }
+
+        .after-hero-space { height: 40px; }
+
+        /* --- D. CATEGORY TABS --- */
+        .category-session { background: #fff; padding: 60px 0 20px; position: relative; z-index: 2; }
+        .category-grid { max-width: 1100px; margin: 0 auto; padding: 0 15px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 25px; }
+        .cat-row-bottom { grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 45px; }
+        .cateItem { text-decoration: none; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.3s ease; }
+        .image-icon { width: 100px; height: 100px; border: 1.2px dashed var(--jm-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #ffffff; transition: var(--transition-smooth); position: relative; }
+        .image-icon img { width: 50px; height: auto; filter: grayscale(1) opacity(0.8); transition: all 0.4s ease; }
+        .image-title { margin-top: 15px; font-size: 12px; font-weight: 600; color: var(--text-dark); letter-spacing: 0.8px; text-transform: uppercase; text-align: center; }
+        .cateItem:hover .image-icon { border: 1.5px solid #000; transform: translateY(-10px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12); }
+
+        /* --- LOOKBOOK GALLERY --- */
+        .lookbook-gallery {
+            padding-bottom: 60px;
+        }
+        .lookbook-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        .lookbook-item {
+            display: block;
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .lookbook-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            z-index: 1;
+        }
+        .lookbook-item img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            background: #ffffff;
+        }
+
+        /* --- F. SẢN PHẨM BÁN CHẠY --- */
+        .best-seller-section { 
+            padding: 80px 0; 
+            background: #ffffff; 
+            max-width: var(--max-width); 
+            margin: 0 auto; 
+            position: relative;
+        }
+        .section-title { 
+            text-align: center; 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin-bottom: 50px; 
+            text-transform: uppercase; 
+        }
+        
+        .product-slider-container { 
+            width: 100%; 
+            position: relative; 
+            overflow: hidden;
+            touch-action: pan-y;
+            cursor: grab;
+        }
+
+        .product-track { 
+            display: flex; 
+            will-change: transform; 
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .product-page {
+            min-width: 100%;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .product-page { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .product-page { grid-template-columns: repeat(2, 1fr); }
+            .lookbook-grid { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        .product-card { 
+            position: relative; 
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            cursor: pointer;
+        }
+        .p-img-wrap { 
+            position: relative; 
+            height: 320px; 
+            overflow: hidden; 
+            margin-bottom: 12px; 
+            background: #f5f5f5;
+            pointer-events: none;
+        }
+        .p-img-wrap img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            transition: transform 0.5s ease; 
+        }
+        .product-card:hover .p-img-wrap img { transform: scale(1.05); }
+
+        .wishlist-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 5;
+            color: #111;
+        }
+        .product-card:hover .wishlist-icon { opacity: 1; }
+
+        .product-info { padding: 5px 0; pointer-events: none; }
+        .product-name { 
+            font-size: 13px; 
+            font-weight: 500; 
+            margin-bottom: 6px; 
+            color: #333;
+            height: 40px; 
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .color-dots { display: flex; gap: 6px; margin-bottom: 8px; }
+        .color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #eee; }
+
+        .price-box { font-size: 14px; display: flex; align-items: baseline; gap: 8px; font-weight: bold; }
+        .current-price { color: var(--sale-red); }
+        .old-price { color: var(--jm-gray); text-decoration: line-through; font-size: 12px; font-weight: normal; }
+        
+        .slider-dots { display: flex; justify-content: center; gap: 12px; margin-top: 40px; }
+        .dot-item { width: 8px; height: 8px; border-radius: 50%; background: #d1d1d1; cursor: pointer; transition: all 0.3s ease; }
+        .dot-item.active { background: #000; transform: scale(1.4); }
+
+        /* --- E. FOOTER --- */
+        .site-footer { background-color: var(--footer-bg); color: #fff; padding: 80px 0 40px; font-size: 14px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-bottom: 60px; }
+        .footer-col h4 { font-size: 15px; font-weight: 700; text-transform: uppercase; margin-bottom: 25px; color: #fff; letter-spacing: 1px; }
+        .footer-links a { color: #aaa; transition: 0.2s; display: block; margin-bottom: 12px;}
+        .footer-links a:hover { color: #fff; }
+        
+        .social-links { display: flex; flex-direction: column; gap: 16px; }
+        .social-item { display: flex; align-items: center; gap: 12px; color: #aaa; transition: 0.2s; }
+        .social-item:hover { color: #fff; }
+        .social-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+
+        .footer-bottom { border-top: 1px solid #333; padding-top: 30px; display: flex; justify-content: space-between; font-size: 12px; color: #555;}
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container top-header">
+            <div class="logo-area">
+                <a href="/" class="logo-text">AN THẢO STORE</a>
+                <span class="logo-tagline">LUXURY WOMEN'S WEAR</span>
+            </div>
+
+            <nav class="main-nav">
+                <a href="#" class="nav-item sale">TẾT RỘN RÀNG <span class="badge-sale">SALE</span></a>
+                <a href="#" class="nav-item">ĐẦM</a>
+                <a href="#" class="nav-item">ÁO</a>
+                <a href="#" class="nav-item">QUẦN</a>
+                <a href="#" class="nav-item">CHÂN VÁY</a>
+                <a href="#" class="nav-item">ÁO KHOÁC</a>
+                <a href="#" class="nav-item">LOOKBOOK</a>
+                <a href="#" class="nav-item">BST MỚI</a>
+            </nav>
+
+            <div class="header-icons">
+                <button class="icon-btn" title="Yêu thích">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                </button>
+                <button class="icon-btn" title="Giỏ hàng">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    <span class="cart-count">0</span>
+                </button>
+                <button class="icon-btn" title="Tài khoản">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero" id="heroSlider">
+            <div class="slider-viewport">
+                <div class="track" id="heroTrack"></div>
+            </div>
+            
+            <form class="hero-search-bar" id="searchForm">
+                <input type="text" id="searchInput" placeholder="Bạn muốn tìm sản phẩm gì?">
+                <button type="submit" class="btn-search">Tìm kiếm ngay</button>
+            </form>
+        </section>
+        <div class="after-hero-space"></div>
+
+        <section class="category-session">
+            <div class="category-grid" id="categoryContainerTop"></div>
+            <div class="cat-row-bottom" id="categoryContainerBottom"></div>
+        </section>
+
+        <section class="lookbook-gallery">
+            <div class="lookbook-grid">
+                <a href="#" class="lookbook-item"><img src="https://pos.nvncdn.com/4ef0bf-108661/bn/20260108_I7Eez9Oi.jpg?v=1767862197" alt="Gallery 1"></a>
+                <a href="#" class="lookbook-item"><img src="https://pos.nvncdn.com/4ef0bf-108661/bn/20251231_h789P7nH.jpg?v=1767177452" alt="Gallery 2"></a>
+                <a href="#" class="lookbook-item"><img src="https://pos.nvncdn.com/4ef0bf-108661/bn/20251216_isBpUPK0.jpg?v=1765852192" alt="Gallery 3"></a>
+                <a href="#" class="lookbook-item"><img src="https://pos.nvncdn.com/4ef0bf-108661/bn/20251204_Y07Js77Y.jpg?v=1764839532" alt="Gallery 4"></a>
+                <a href="#" class="lookbook-item"><img src="https://pos.nvncdn.com/4ef0bf-108661/bn/20251119_VGo5RHny.jpg?v=1763523521" alt="Gallery 5"></a>
+                <a href="#" class="lookbook-item"><img src="https://pos.nvncdn.com/4ef0bf-108661/bn/20251106_NP9S6TV0.jpg?v=1762399896" alt="Gallery 6"></a>
+            </div>
+        </section>
+
+        <section class="best-seller-section" id="bestSellerSection">
+            <h2 class="section-title">SẢN PHẨM BÁN CHẠY</h2>
+            <div class="product-slider-container" id="productCarousel">
+                <div class="product-track" id="productTrack"></div>
+            </div>
+            <div class="slider-dots" id="sliderDots"></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-links" style="margin-top: 40px;">
+                        <a href="#">Giới thiệu</a>
+                        <a href="#">Tin tức</a>
+                        <a href="#">Hệ thống cửa hàng</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>LIÊN HỆ VỚI CHÚNG TÔI</h4>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/100034790042786" target="_blank" class="social-item">Facebook</a>
+                        <a href="https://www.instagram.com/_thaoquyt" target="_blank" class="social-item">Instagram</a>
+                        <a href="tel:0979739173" class="social-item">Hotline: 0979.739.173</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>CHĂM SÓC KHÁCH HÀNG</h4>
+                    <div class="footer-links">
+                        <a href="#">Chính sách vận chuyển</a>
+                        <a href="#">Chính sách tích điểm</a>
+                        <a href="#">Chính sách đổi trả</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AN THẢO STORE. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ES6 Module import - Vercel will bundle this correctly -->
+    <script type="module" src="./index.tsx"></script>
+</body>
+</html>
